@@ -1,0 +1,10 @@
+{
+    "name": "adn-employee-tracker",
+    "version": "1.0.0",
+    "main": "server.js",
+    "author": "Alejandro D. Nava",
+    "dependencies": {
+        "inquirer": "^8.2.4",
+        "mysql2": "^2.2.5"
+    }
+}
