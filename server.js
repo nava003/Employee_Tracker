@@ -12,7 +12,7 @@ const db = mysql.createConnection(
         database: 'company_db',
         multipleStatements: true
     },
-    console.log('Successfully connected to company_db database.\n')
+    console.log('Successfully connected to company_db database.')
 );
 
 const dbPromise = db.promise();
@@ -46,8 +46,7 @@ function init() {
     compDB = fs.readFileSync('./db/seeds.sql', 'utf8');
     db.query(`${compDB}`);
     
-    console.log(`
-____________________________________________________________
+    console.log(`____________________________________________________________
 |                                                          |
 |   _____                    _                             |
 |  | ____| _ __ ___   _ __  | |  ___   _   _   ___   ___   |
@@ -102,6 +101,7 @@ async function runInquirer() {
                 // const dbResult = results.map();
                 console.table(results);
                 // console.table(dbResult);
+                console.log('\n');
                 runInquirer();
             });
             break;
@@ -134,8 +134,12 @@ async function runInquirer() {
             break;
 
         case 'View all Roles':
-            db.query('SELECT * FROM roles', (err, results) => {
-                console.log(results);
+            db.query(`SELECT roles.id, roles.title, departments.name, roles.salary
+            FROM roles, departments
+            WHERE departments.id = roles.department_id`, (err, results) => {
+                console.table(results);
+                console.log('\n');
+                runInquirer();
             });
             break;
 
@@ -208,8 +212,7 @@ async function runInquirer() {
     }
 
     if (data.mainMenu === 'Exit') {
-        console.log(`
-____________________________________________________________
+        console.log(`____________________________________________________________
 |                                                          |
 |     ____                    _  _                   _     |
 |    / ___|  ___    ___    __| || |__   _   _   ___ | |    |
@@ -218,8 +221,7 @@ ____________________________________________________________
 |    \\____| \\___/  \\___/  \\__,_||_.__/  \\__, | \\___|(_)    |
 |                                       |___/              |
 |                                                          |
-|__________________________________________________________|
-        `);
+|__________________________________________________________|`);
         process.exit();
     }
 };
