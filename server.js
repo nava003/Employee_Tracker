@@ -107,9 +107,9 @@ async function runInquirer() {
             break;
 
         case 'View a Department Budget':
-            let [rows, fields] = await dbPromise.query('SELECT name FROM departments');
-            // console.log(rows);
-            const deptNames = rows.map(res => res.name);
+            let [vdbRows, vdbFields] = await dbPromise.query('SELECT name FROM departments');
+            //console.log(vdbRows);
+            const deptNames = vdbRows.map(res => res.name);
             // console.log(mapNames);
             const deptData = await inquirer.prompt(
                 {
@@ -160,9 +160,31 @@ async function runInquirer() {
             break;
 
         case 'View Employees by Manager':
-            db.query(``, (err, results) => {
+            let [vemRows, vemFields] = await dbPromise.query(`SELECT CONCAT(first_name, ' ', last_name) AS manager_name
+            FROM employees
+            WHERE manager_id IS NULL`);
+            const emNames = vemRows.map(res => res.manager_name);
+            const emData = await inquirer.prompt(
+                {
+                    type: 'list',
+                    name: 'emList',
+                    message: 'Select a Manager to view their employees:',
+                    choices: emNames,
+                }
+            )
 
-            })
+            db.query(`SELECT employees.id, CONCAT(first_name, ' ', last_name) AS employee_name, roles.title
+            FROM employees, roles
+            WHERE manager_id = (SELECT id
+                                FROM employees
+                                WHERE CONCAT(first_name, ' ', last_name) = "John Doe")
+                                AND
+                                role_id = roles.id`,
+            emData.emList, (err, results) => {
+                console.table(results);
+                console.log('\n');
+                runInquirer();
+            });
             break;
 
         case 'View Employees by Department':
