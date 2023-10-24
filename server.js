@@ -144,65 +144,75 @@ async function runInquirer() {
             break;
 
         case 'View all Employees':
-            db.query('SELECT * FROM employees', (err, results) => {
-                console.log(results);
+            db.query(`SELECT e1.id, e1.first_name, e1.last_name, r1.title, d1.name, r1.salary,
+                IFNULL(CONCAT(e2.first_name, ' ', e2.last_name), '') AS manager
+            FROM employees e1
+            LEFT JOIN employees e2
+                ON e1.manager_id = e2.id
+            JOIN roles r1
+                ON r1.id = e1.role_id
+            JOIN departments d1
+                ON d1.id = r1.department_id`, (err, results) => {
+                console.table(results);
+                console.log('\n');
+                runInquirer();
             });
             break;
 
         case 'View Employees by Manager':
-            db.query('', (err, results) => {
+            db.query(``, (err, results) => {
 
             })
             break;
 
         case 'View Employees by Department':
-            db.query('', (err, results) => {
+            db.query(``, (err, results) => {
                 
             })
             break;
 
         case 'Add a Department':
-            db.query('', (err, results) => {
+            db.query(``, (err, results) => {
                 
             })
             break;
 
         case 'Add a Role':
-            db.query('', (err, results) => {
+            db.query(``, (err, results) => {
                 
             })
             break;
 
         case 'Add an Employee':
-            db.query('', (err, results) => {
+            db.query(``, (err, results) => {
                 
             })
             break;
         case 'Update an Employee Role':
-            db.query('', (err, results) => {
+            db.query(``, (err, results) => {
                 
             })
             break;
 
         case 'Update Managers':
-            db.query('', (err, results) => {
+            db.query(``, (err, results) => {
                 
             })
             break;
 
         case 'Delete a Department':
-            db.query('', (err, results) => {
+            db.query(``, (err, results) => {
                 
             })
             break;
         case 'Delete a Role':
-            db.query('', (err, results) => {
+            db.query(``, (err, results) => {
                 
             })
             break;
 
         case 'Delete an Employee':
-            db.query('', (err, results) => {
+            db.query(``, (err, results) => {
                 
             })
             break;
