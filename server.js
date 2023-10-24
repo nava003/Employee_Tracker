@@ -105,6 +105,7 @@ async function runInquirer() {
                 runInquirer();
             });
             break;
+
         case 'View a Department Budget':
             let [rows, fields] = await dbPromise.query('SELECT name FROM departments');
             // console.log(rows);
@@ -118,8 +119,6 @@ async function runInquirer() {
                     choices: deptNames,
                 }
             )
-
-            // console.log(deptData.deptList);
             
             db.query(`SELECT departments.name, SUM(roles.salary) AS dept_budget
             FROM departments, employees, roles
@@ -133,36 +132,43 @@ async function runInquirer() {
                 runInquirer();
             });
             break;
+
         case 'View all Roles':
             db.query('SELECT * FROM roles', (err, results) => {
                 console.log(results);
             });
             break;
+
         case 'View all Employees':
             db.query('SELECT * FROM employees', (err, results) => {
                 console.log(results);
             });
             break;
+
         case 'View Employees by Manager':
             db.query('', (err, results) => {
 
             })
             break;
+
         case 'View Employees by Department':
             db.query('', (err, results) => {
                 
             })
             break;
+
         case 'Add a Department':
             db.query('', (err, results) => {
                 
             })
             break;
+
         case 'Add a Role':
             db.query('', (err, results) => {
                 
             })
             break;
+
         case 'Add an Employee':
             db.query('', (err, results) => {
                 
@@ -173,11 +179,13 @@ async function runInquirer() {
                 
             })
             break;
+
         case 'Update Managers':
             db.query('', (err, results) => {
                 
             })
             break;
+
         case 'Delete a Department':
             db.query('', (err, results) => {
                 
@@ -188,11 +196,13 @@ async function runInquirer() {
                 
             })
             break;
+
         case 'Delete an Employee':
             db.query('', (err, results) => {
                 
             })
             break;
+
         default:
             break;
     }
