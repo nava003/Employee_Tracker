@@ -20,12 +20,6 @@ const dbPromise = db.promise();
 const uestions = [
     {
         type: "input",
-        name: "newDept",
-        message: "Insert new Department name:",
-        when: (dAns) => dAns.mainMenu === 'Add a Department',
-    },
-    {
-        type: "input",
         name: "delDept",
         message: "Insert the name of the Department to delete:",
         when: (rAnswer) => rAnswer.mainMenu === 'Delete a Department',
@@ -177,7 +171,7 @@ async function runInquirer() {
             FROM employees, roles
             WHERE manager_id = (SELECT id
                                 FROM employees
-                                WHERE CONCAT(first_name, ' ', last_name) = "John Doe")
+                                WHERE CONCAT(first_name, ' ', last_name) = ?)
                                 AND
                                 role_id = roles.id`,
             vemData.empList, (err, results) => {
@@ -214,21 +208,112 @@ async function runInquirer() {
             break;
 
         case 'Add a Department':
-            db.query(``, (err, results) => {
-                
-            })
+            const addDeptData = await inquirer.prompt(
+                {
+                    type: 'input',
+                    name: 'deptName',
+                    message: 'Insert new Department name:',
+                }
+            )
+            
+            db.query(`INSERT INTO departments (name)
+            VALUES (?)`, addDeptData.deptName);
+
+            console.log(`${addDeptData.deptName} is now in the database.\n`);
+            runInquirer();
             break;
 
         case 'Add a Role':
-            db.query(``, (err, results) => {
-                
-            })
+            let [ardRows, ardFields] = await dbPromise.query('SELECT name FROM departments');
+            const ardNames = ardRows.map(res => res.name);
+
+            const addRoleData = await inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'roleTitle',
+                    message: 'Insert new role Title:',
+                },
+                {
+                    type: 'number',
+                    name: 'roleSalary',
+                    message: 'Insert Salary for new role:',
+                },
+                {
+                    type: 'list',
+                    name: 'roleDept',
+                    message: 'Select a Department for the new role:',
+                    choices: ardNames,
+                },
+            ]);
+
+            db.query(`INSERT INTO roles (title, salary, department_id)
+            VALUES (?, ?, (SELECT id
+                           FROM departments
+                           WHERE name = ?))`,
+            [addRoleData.roleTitle, addRoleData.roleSalary, addRoleData.roleDept]);
+
+            console.log(`${addRoleData.roleTitle} is now in the database.\n`);
+            runInquirer();
             break;
 
         case 'Add an Employee':
-            db.query(``, (err, results) => {
-                
-            })
+            let [aerRows, aerFields] = await dbPromise.query('SELECT title FROM roles');
+            const aerTitles = aerRows.map(res => res.title);
+
+            let [aemRows, aemFields] = await dbPromise.query(`SELECT CONCAT(first_name, ' ', last_name) AS manager_name
+            FROM employees
+            WHERE manager_id IS NULL`);
+            const aemNames = aemRows.map(res => res.manager_name);
+            aemNames.unshift('None');
+
+            const addEmpData = await inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'empFName',
+                    message: 'Insert First Name:',
+                },
+                {
+                    type: 'input',
+                    name: 'empLName',
+                    message: 'Insert Last Name:',
+                },
+                {
+                    type: 'list',
+                    name: 'empRole',
+                    message: 'Select a Role for new employee',
+                    choices: aerTitles,
+                },
+                {
+                    type: 'list',
+                    name: 'empManager',
+                    message: 'Select a Manager for new employee',
+                    choices: aemNames,
+                }
+            ])
+
+            if (addEmpData.empManager === 'None') {
+                db.query(`INSERT INTO employees (first_name, last_name, role_id, manager_id)
+                VALUES (?, ?, (SELECT id
+                               FROM roles
+                               WHERE title = ?), NULL)`,
+                [addEmpData.empFName, addEmpData.empLName, addEmpData.empRole],
+                (err, results) => {
+                    console.log(`${addEmpData.empFName} ${addEmpData.empLName} is now in the database.\n`);
+                    runInquirer();
+                });
+            } else {
+                db.query(`INSERT INTO employees (first_name, last_name, role_id, manager_id)
+                VALUES (?, ?, (SELECT id
+                               FROM roles
+                               WHERE title = ?), (SELECT id
+                                                  FROM (SELECT * FROM employees) AS temp_emp
+                                                  WHERE CONCAT(first_name, ' ', last_name) = ?))`,
+                [addEmpData.empFName, addEmpData.empLName, addEmpData.empRole, addEmpData.empManager],
+                (err, results) => {
+                    console.log(`${addEmpData.empFName} ${addEmpData.empLName} is now in the database.\n`);
+                    runInquirer();
+                });
+            }
             break;
         case 'Update an Employee Role':
             db.query(``, (err, results) => {
