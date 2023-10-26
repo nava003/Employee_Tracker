@@ -17,22 +17,6 @@ const db = mysql.createConnection(
 
 const dbPromise = db.promise();
 
-const uestions = [
-    {
-        type: "input",
-        name: "delDept",
-        message: "Insert the name of the Department to delete:",
-        when: (rAnswer) => rAnswer.mainMenu === 'Delete a Department',
-    },
-    {
-        type: "input",
-        name: "addEmp",
-        message: "Select the following Employee Options:",
-        choices: ['Go Back'],
-        when: (eAnswer) => eAnswer.mainMenu === 'View all Employees',
-    },
-];
-
 function init() {
     let compDB = fs.readFileSync('./db/schema.sql', 'utf8');
     db.query(`${compDB}`);
@@ -67,7 +51,7 @@ async function runInquirer() {
             message: "Please select the following options:",
             choices: [
                 'View all Departments',
-                'View a Department Budget',
+                'View a Department\'s Budget',
                 'Add a Department',
                 'Delete a Department',
                 new inquirer.Separator(),
@@ -79,8 +63,8 @@ async function runInquirer() {
                 'View Employees by Manager',
                 'View Employees by Department',
                 'Add an Employee',
-                'Update an Employee Role',
-                'Update Managers',
+                'Update an Employee\'s Role',
+                'Update an Employee\'s Manager',
                 'Delete an Employee',
                 new inquirer.Separator(),
                 'Exit',
@@ -92,9 +76,7 @@ async function runInquirer() {
     switch (data.mainMenu) {
         case 'View all Departments':
             db.query('SELECT * FROM departments', (err, results) => {
-                // const dbResult = results.map();
                 console.table(results);
-                // console.table(dbResult);
                 console.log('\n');
                 runInquirer();
             });
@@ -102,9 +84,7 @@ async function runInquirer() {
 
         case 'View a Department Budget':
             let [vdbRows, vdbFields] = await dbPromise.query('SELECT name FROM departments');
-            //console.log(vdbRows);
             const vdbNames = vdbRows.map(res => res.name);
-            // console.log(mapNames);
             const vdbData = await inquirer.prompt(
                 {
                     type: 'list',
@@ -115,10 +95,10 @@ async function runInquirer() {
             )
             
             db.query(`SELECT departments.name, SUM(roles.salary) AS dept_budget
-            FROM departments, employees, roles
+            FROM departments
+            JOIN roles ON departments.id = roles.department_id
+            JOIN employees ON roles.id = employees.role_id
             WHERE name = ?
-                AND departments.id = roles.department_id
-                AND roles.id = employees.role_id
             GROUP BY name`,
             vdbData.deptList, (err, results) => {
                 console.table(results);
@@ -128,9 +108,10 @@ async function runInquirer() {
             break;
 
         case 'View all Roles':
-            db.query(`SELECT roles.id, roles.title, departments.name, roles.salary
-            FROM roles, departments
-            WHERE departments.id = roles.department_id`, (err, results) => {
+            db.query(`SELECT roles.id, roles.title, departments.name AS department_name, roles.salary
+            FROM roles
+            LEFT JOIN departments
+                ON departments.id = roles.department_id`, (err, results) => {
                 console.table(results);
                 console.log('\n');
                 runInquirer();
@@ -138,14 +119,14 @@ async function runInquirer() {
             break;
 
         case 'View all Employees':
-            db.query(`SELECT e1.id, e1.first_name, e1.last_name, r1.title, d1.name, r1.salary,
-                IFNULL(CONCAT(e2.first_name, ' ', e2.last_name), '') AS manager
+            db.query(`SELECT e1.id, e1.first_name, e1.last_name, r1.title, d1.name AS department_name, r1.salary,
+                CONCAT(e2.first_name, ' ', e2.last_name) AS manager
             FROM employees e1
             LEFT JOIN employees e2
                 ON e1.manager_id = e2.id
-            JOIN roles r1
+            LEFT JOIN roles r1
                 ON r1.id = e1.role_id
-            JOIN departments d1
+            LEFT JOIN departments d1
                 ON d1.id = r1.department_id`, (err, results) => {
                 console.table(results);
                 console.log('\n');
@@ -161,20 +142,20 @@ async function runInquirer() {
             const vemData = await inquirer.prompt(
                 {
                     type: 'list',
-                    name: 'empList',
+                    name: 'manList',
                     message: 'Select a Manager to view their employees:',
                     choices: vemNames,
                 }
             )
 
             db.query(`SELECT employees.id, CONCAT(first_name, ' ', last_name) AS employee_name, roles.title
-            FROM employees, roles
+            FROM employees
+            LEFT JOIN roles
+                ON employees.role_id = roles.id
             WHERE manager_id = (SELECT id
                                 FROM employees
-                                WHERE CONCAT(first_name, ' ', last_name) = ?)
-                                AND
-                                role_id = roles.id`,
-            vemData.empList, (err, results) => {
+                                WHERE CONCAT(first_name, ' ', last_name) = ?)`,
+            vemData.manList, (err, results) => {
                 console.table(results);
                 console.log('\n');
                 runInquirer();
@@ -194,10 +175,10 @@ async function runInquirer() {
             )
 
             db.query(`SELECT employees.id, CONCAT(first_name, ' ', last_name) AS employee_name, roles.title
-            FROM employees, roles
-            WHERE role_id = roles.id
-            AND
-            roles.department_id = (SELECT id
+            FROM employees
+            JOIN roles
+                ON roles.id = employees.role_id
+            WHERE roles.department_id = (SELECT id
                                    FROM departments
                                    WHERE name = ?)`,
             vedData.deptList, (err, results) => {
@@ -315,13 +296,39 @@ async function runInquirer() {
                 });
             }
             break;
-        case 'Update an Employee Role':
-            db.query(``, (err, results) => {
-                
-            })
+        case 'Update an Employee\'s Role':
+            let [uenRows, uenFields] = await dbPromise.query(`SELECT CONCAT(first_name, ' ', last_name) AS emp_name
+            FROM employees`);
+            const uenNames = uenRows.map(res => res.emp_name);
+
+            let [uerRows, uerFields] = await dbPromise.query(`SELECT title FROM roles`);
+            const uerTitles = uerRows.map(res => res.title);
+
+            const uerData = await inquirer.prompt([
+                {
+                    type: 'list',
+                    name: 'empName',
+                    message: 'Select which Employee to Update:',
+                    choices: uenNames,
+                },
+                {
+                    type: 'list',
+                    name: 'roleTitle',
+                    message: 'Select which Role the Employee is newly assigned to:',
+                    choices: uerTitles,
+                },
+            ]);
+
+            db.query(`UPDATE employees
+            SET role_id = (SELECT id FROM roles WHERE title = ?)
+            WHERE CONCAT(first_name, ' ', last_name) = ?`,
+            [uerData.roleTitle, uerData.empName]);
+
+            console.log(`${uerData.empName}'s Role has been updated.\n`);
+            runInquirer();
             break;
 
-        case 'Update Managers':
+        case 'Update an Employee\'s Manager':
             db.query(``, (err, results) => {
                 
             })
