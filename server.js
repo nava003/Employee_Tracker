@@ -314,7 +314,7 @@ async function runInquirer() {
                 {
                     type: 'list',
                     name: 'roleTitle',
-                    message: 'Select which Role the Employee is newly assigned to:',
+                    message: 'Select which Role the Employee will be assigned to:',
                     choices: uerTitles,
                 },
             ]);
@@ -329,9 +329,38 @@ async function runInquirer() {
             break;
 
         case 'Update an Employee\'s Manager':
-            db.query(``, (err, results) => {
-                
-            })
+            let [uempRows, uempFields] = await dbPromise.query(`SELECT CONCAT(first_name, ' ', last_name) AS emp_name
+            FROM employees`);
+            const uempNames = uempRows.map(res => res.emp_name);
+            
+            let [umanRows, umanFields] = await dbPromise.query(`SELECT CONCAT(first_name, ' ', last_name) AS manager_name
+            FROM employees
+            WHERE manager_id IS NULL`);
+            const umanNames = umanRows.map(res => res.manager_name);
+            umanNames.unshift('None');
+            
+            const uemData = await inquirer.prompt([
+                {
+                    type: 'list',
+                    name: 'empName',
+                    message: 'Select which Employee to Update:',
+                    choices: uempNames,
+                },
+                {
+                    type: 'list',
+                    name: 'manName',
+                    message: 'Select which Manager the Employee will be assigned under:',
+                    choices: umanNames,
+                }
+            ]);
+
+            db.query(`UPDATE employees
+            SET manager_id = (SELECT id FROM employees WHERE CONCAT(first_name, ' ', last_name) = ?)
+            WHERE CONCAT(first_name, ' ', last_name) = ?`,
+            [uemData.manName, uemData.empName]);
+
+            console.log(`${uemData.empName}'s Manager has been updated.`);
+            runInquirer();
             break;
 
         case 'Delete a Department':
@@ -339,6 +368,7 @@ async function runInquirer() {
                 
             })
             break;
+
         case 'Delete a Role':
             db.query(``, (err, results) => {
                 
@@ -350,13 +380,9 @@ async function runInquirer() {
                 
             })
             break;
-
-        default:
-            break;
-    }
-
-    if (data.mainMenu === 'Exit') {
-        console.log(`____________________________________________________________
+        
+        case 'Exit':
+            console.log(`____________________________________________________________
 |                                                          |
 |     ____                    _  _                   _     |
 |    / ___|  ___    ___    __| || |__   _   _   ___ | |    |
@@ -366,7 +392,11 @@ async function runInquirer() {
 |                                       |___/              |
 |                                                          |
 |__________________________________________________________|`);
-        process.exit();
+            process.exit();
+            break;
+
+        default:
+            break;
     }
 };
 
