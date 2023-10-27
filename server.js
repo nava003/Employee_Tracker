@@ -82,7 +82,7 @@ async function runInquirer() {
             });
             break;
 
-        case 'View a Department Budget':
+        case 'View a Department\'s Budget':
             let [vdbRows, vdbFields] = await dbPromise.query('SELECT name FROM departments');
             const vdbNames = vdbRows.map(res => res.name);
             const vdbData = await inquirer.prompt(
@@ -364,21 +364,60 @@ async function runInquirer() {
             break;
 
         case 'Delete a Department':
-            db.query(``, (err, results) => {
-                
-            })
+            let [dadRows, dadFields] = await dbPromise.query(`SELECT name FROM departments`);
+            const dadNames = dadRows.map(res => res.name);
+
+            const dadData = await inquirer.prompt(
+                {
+                    type: 'list',
+                    name: 'deptName',
+                    message: 'Select which Department to Delete:',
+                    choices: dadNames,
+                }
+            );
+
+            db.query(`DELETE FROM departments WHERE name = ?`, dadData.deptName);
+
+            console.log(`${dadData.deptName} has been deleted from the database.\n`);
+            runInquirer();
             break;
 
         case 'Delete a Role':
-            db.query(``, (err, results) => {
-                
-            })
+            let [darRows, darFields] = await dbPromise.query(`SELECT title FROM roles`);
+            const darTitles = darRows.map(res => res.title);
+
+            const darData = await inquirer.prompt(
+                {
+                    type: 'list',
+                    name: 'roleTitle',
+                    message: 'Select which Role Title to Delete:',
+                    choices: darTitles,
+                }
+            );
+
+            db.query(`DELETE FROM roles WHERE title = ?`, darData.roleTitle);
+
+            console.log(`${darData.roleTitle} has been deleted from the database.\n`);
+            runInquirer();
             break;
 
         case 'Delete an Employee':
-            db.query(``, (err, results) => {
-                
-            })
+            let [daeRows, deeFields] = await dbPromise.query(`SELECT CONCAT(first_name, ' ', last_name) AS emp_name FROM employees`);
+            const daeNames = daeRows.map(res => res.emp_name);
+
+            const daeData = await inquirer.prompt(
+                {
+                    type: 'list',
+                    name: 'empName',
+                    message: 'Select which Employee to Delete:',
+                    choices: daeNames,
+                }
+            );
+
+            db.query(`DELETE FROM employees WHERE CONCAT(first_name, ' ', last_name) = ?`, daeData.empName);
+
+            console.log(`${daeData.empName} has been deleted from the database.\n`);
+            runInquirer();
             break;
         
         case 'Exit':
