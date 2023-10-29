@@ -54,4 +54,5 @@ The following video shows an example of the application being used from the comm
 
 ## Student Result
 The following video demonstrates the application interacting with the user accordingly:  
-video
+
+https://github.com/nava003/ADN_Employee_Tracker/assets/32070635/2b4329db-e495-4c2a-bdf2-d2ee0fe030b2
