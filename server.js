@@ -295,7 +295,7 @@ async function runInquirer() {
                                FROM roles
                                WHERE title = ?), NULL)`,
                 [addEmpData.empFName, addEmpData.empLName, addEmpData.empRole],
-                (err, results) => {
+                () => {
                     console.log(`${addEmpData.empFName} ${addEmpData.empLName} is now in the database.\n`);
                     runInquirer();
                 });
@@ -307,12 +307,13 @@ async function runInquirer() {
                                                   FROM (SELECT * FROM employees) AS temp_emp
                                                   WHERE CONCAT(first_name, ' ', last_name) = ?))`,
                 [addEmpData.empFName, addEmpData.empLName, addEmpData.empRole, addEmpData.empManager],
-                (err, results) => {
+                () => {
                     console.log(`${addEmpData.empFName} ${addEmpData.empLName} is now in the database.\n`);
                     runInquirer();
                 });
             }
             break;
+
         case 'Update an Employee\'s Role':
             let [uenRows, uenFields] = await dbPromise.query(`SELECT CONCAT(first_name, ' ', last_name) AS emp_name
             FROM employees`);
@@ -374,10 +375,10 @@ async function runInquirer() {
             db.query(`UPDATE employees
             SET manager_id = (SELECT id FROM employees WHERE CONCAT(first_name, ' ', last_name) = ?)
             WHERE CONCAT(first_name, ' ', last_name) = ?`,
-            [uemData.manName, uemData.empName]);
-
-            console.log(`${uemData.empName}'s Manager has been updated.`);
-            runInquirer();
+            [uemData.manName, uemData.empName], () => {
+                console.log(`${uemData.empName}'s Manager has been updated.\n`);
+                runInquirer();
+            });
             break;
 
         case 'Delete a Department':
