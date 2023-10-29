@@ -32,6 +32,22 @@
 > `WHEN I choose to update an employee role`  
 > `THEN I am prompted to select an employee to update and their new role and this information is updated in the database`
 
+## Bonus Criteria
+> `WHEN I choose to update an employee manager`  
+> `THEN I am prompted to select an employee to update and their new manager is updated in the database`
+> 
+> `WHEN I choose to view employees by manager`  
+> `THEN I am presented with a formatted table showing employees who report to the selected manager`
+> 
+> `WHEN I choose to view employees by department`  
+> `THEN I am presented with a formatted table showing all employees who work under a selected department`
+> 
+> `WHEN I choose to delete a department, role, or employee`  
+> `THEN I am prompted to select a department, role, or employee to delete and this information is deleted from the database`
+> 
+> `WHEN I choose to view a department's budget`  
+> `THEN I am presented with a formatted table showing a department's budget based on the salaries of all employees assigned to the selected department`
+
 ## Mock-Up
 The following video shows an example of the application being used from the command line:  
 ![12-sql-homework-video-thumbnail](https://github.com/nava003/ADN_Employee_Tracker/assets/32070635/e7474b84-6174-4293-9ab1-55890e9ba657)
