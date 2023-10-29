@@ -373,12 +373,14 @@ async function runInquirer() {
             ]);
 
             db.query(`UPDATE employees
-            SET manager_id = (SELECT id FROM employees WHERE CONCAT(first_name, ' ', last_name) = ?)
+            SET manager_id = (SELECT id
+                              FROM (SELECT * FROM employees)
+                              WHERE CONCAT(first_name, ' ', last_name) = ?)
             WHERE CONCAT(first_name, ' ', last_name) = ?`,
-            [uemData.manName, uemData.empName], () => {
-                console.log(`${uemData.empName}'s Manager has been updated.\n`);
-                runInquirer();
-            });
+            [uemData.manName, uemData.empName]);
+
+            console.log(`${uemData.empName}'s Manager has been updated.\n`);
+            runInquirer();
             break;
 
         case 'Delete a Department':
