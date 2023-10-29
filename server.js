@@ -15,8 +15,10 @@ const db = mysql.createConnection(
     console.log('Successfully connected to company_db database.')
 );
 
+// An asynchronous promise action when a query result requires to be held in a variable
 const dbPromise = db.promise();
 
+// Initialization function; setup the database before launching the next function
 function init() {
     let compDB = fs.readFileSync('./db/schema.sql', 'utf8');
     db.query(`${compDB}`);
@@ -43,7 +45,10 @@ function init() {
     runInquirer();
 };
 
+// Entire logic and interaction is found in this async function
 async function runInquirer() {
+    
+    // Begin asking user with a 'main menu' prompt
     const data = await inquirer.prompt(
         {
             type: "list",
@@ -73,6 +78,7 @@ async function runInquirer() {
         }
     )
     
+    // Afterwards, proceed with the following Switch/Case logic based on user's choice
     switch (data.mainMenu) {
         case 'View all Departments':
             db.query('SELECT * FROM departments', (err, results) => {
@@ -83,8 +89,13 @@ async function runInquirer() {
             break;
 
         case 'View a Department\'s Budget':
+            // Promise query that will hold the results in two variables, Rows and Fields.
+            // In this case, Rows holds the row data array of names in an object.
+            // It is then transformed into a string array using .map()
             let [vdbRows, vdbFields] = await dbPromise.query('SELECT name FROM departments');
             const vdbNames = vdbRows.map(res => res.name);
+
+            // The array is then used as a selective choice in this prompt
             const vdbData = await inquirer.prompt(
                 {
                     type: 'list',
@@ -94,6 +105,10 @@ async function runInquirer() {
                 }
             )
             
+            // Based on the user's choice, the following query will execute and insert the
+            // user's choice in the [?], which will allow the query to complete successfully
+            // and display its results via console.table().
+            // runInquirer() is called again to ensure recursive logic is applied.
             db.query(`SELECT departments.name, SUM(roles.salary) AS dept_budget
             FROM departments
             JOIN roles ON departments.id = roles.department_id
@@ -139,6 +154,7 @@ async function runInquirer() {
             FROM employees
             WHERE manager_id IS NULL`);
             const vemNames = vemRows.map(res => res.manager_name);
+
             const vemData = await inquirer.prompt(
                 {
                     type: 'list',
@@ -165,6 +181,7 @@ async function runInquirer() {
         case 'View Employees by Department':
             let [vedRows, vedFields] = await dbPromise.query(`SELECT name FROM departments`);
             const vedNames = vedRows.map(res => res.name);
+            
             const vedData = await inquirer.prompt(
                 {
                     type: 'list',
