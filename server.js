@@ -373,9 +373,9 @@ async function runInquirer() {
             ]);
 
             db.query(`UPDATE employees
-            SET manager_id = (SELECT id
-                              FROM (SELECT * FROM employees)
-                              WHERE CONCAT(first_name, ' ', last_name) = ?)
+            SET manager_id = (SELECT emp.id
+                              FROM (SELECT * FROM employees) emp
+                              WHERE CONCAT(emp.first_name, ' ', emp.last_name) = ?)
             WHERE CONCAT(first_name, ' ', last_name) = ?`,
             [uemData.manName, uemData.empName]);
 
