@@ -1,4 +1,4 @@
-# ADN_Employee_Tracker
+# Employee_Tracker
 
 ## User Story
 > `AS A business owner`  
